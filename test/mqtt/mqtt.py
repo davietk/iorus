@@ -41,16 +41,18 @@ def on_disconnect(client, userdata, rc):
 	print("on_disconnect")
 	if rc != 0:
 		print("Unexpected disconnection.")
+		print (client)
+		print (userdata)
+		print (rc)
 	else:
 		print("Deconnexion")
-	display_loader(interface.RED)
 
 # ================================================================================================
 # MAIN
 # ================================================================================================
 
 # Config client
-client = mqtt.Client(_CLIENTID, False, None, "MQTTv311", "websockets")
+client = mqtt.Client(_CLIENTID, False, None, "MQTTv311", transport="websockets")
 # Path du certificat
 client.tls_set("/etc/ssl/certs/ca-certificates.crt")
 # Connexion /Reconnexion
@@ -69,16 +71,13 @@ try:
 except Exception, e:
   logging.error("Cannot connect to MQTT broker at %s:%d: %s" % (_HOSTNAME, _PORT, str(e)))
   # Waiting error
-  display_loader(interface.RED)
   raise
 except KeyboardInterrupt:
   logging.error("User KeyboardInterrupt")
   # Clear screen
-  clear_matrix()
   raise
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
 # Other loop*() functions are available that give a threaded interface and a manual interface.
-# client.loop_forever()
-client.loop_start()
-
+client.loop_forever()
+#client.loop_start()
