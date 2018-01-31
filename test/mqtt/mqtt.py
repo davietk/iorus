@@ -9,13 +9,14 @@ import time
 import sys
 import json
 import unicodedata
+import os
 
 _HOSTNAME = ""
 _PORT = 443
 _CLIENTID = ""
 _USERNAME = ""
 _PASSWORD = ""
-_TOPIC = ""
+_TOPIC = "iorus/message"
 
 global message
 message = ""
@@ -34,7 +35,21 @@ def on_message(client, userdata, msg):
 	print("Topic : "+msg.topic+" | Message : "+str(msg.payload))
 	print "==="
 	global message
-	message = str(msg.payload)
+	global criticite
+	global color
+	payload = json.loads(str(msg.payload))
+	message = payload['message']
+	criticite = payload['criticite']
+	
+	if criticite == "1":
+		color = "red"
+	elif criticite == "3":
+		color = "green"
+	else:
+		color = "blue"
+
+	print message
+	os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
 
 # Fonction deconnexion broker
 def on_disconnect(client, userdata, rc):
@@ -52,7 +67,7 @@ def on_disconnect(client, userdata, rc):
 # ================================================================================================
 
 # Config client
-client = mqtt.Client(_CLIENTID, False, None, "MQTTv311", transport="websockets")
+client = mqtt.Client(_CLIENTID, False, None, "MQTTv311", "websockets")
 # Path du certificat
 client.tls_set("/etc/ssl/certs/ca-certificates.crt")
 # Connexion /Reconnexion
@@ -81,3 +96,4 @@ except KeyboardInterrupt:
 # Other loop*() functions are available that give a threaded interface and a manual interface.
 client.loop_forever()
 #client.loop_start()
+
