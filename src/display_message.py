@@ -11,11 +11,11 @@ import json
 import unicodedata
 import os
 
-_HOSTNAME = ""
+_HOSTNAME = "www.ntdc-demos.tk"
 _PORT = 443
-_CLIENTID = ""
-_USERNAME = ""
-_PASSWORD = ""
+_CLIENTID = "ntdc-iorus-1"
+_USERNAME = "ntdc-mqtt-user"
+_PASSWORD = "ntdc-mqtt-user-Accenture1"
 _TOPIC = "iorus/message"
 
 global message
