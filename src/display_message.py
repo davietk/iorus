@@ -50,8 +50,13 @@ def on_message(client, userdata, msg):
 	else:
 		color = "blue"
 
-	print message
-	os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
+	try:
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
+	except MatrixError:
+		print("Erreur lors de l'affichage du dernier message")
+		pass
+	finally:
+		print message
 
 # Fonction deconnexion broker
 def on_disconnect(client, userdata, rc):
