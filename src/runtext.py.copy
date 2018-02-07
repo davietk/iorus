@@ -16,12 +16,12 @@ class RunText(SampleBase):
         font = graphics.Font()
         font.LoadFont("/home/pi/iorus/fonts/ter-u32b.bdf")
 
-    if self.args.color == "red":
-        textColor = graphics.Color(255,0,0)
-    elif self.args.color == "green":
-        textColor = graphics.Color(0,255,0)
-    else:
-        textColor = graphics.Color(0,0,255)
+        if self.args.color == "red":
+            textColor = graphics.Color(255,0,0)
+        elif self.args.color == "green":
+            textColor = graphics.Color(0,255,0)
+        else:
+            textColor = graphics.Color(0,0,255)
 
         #textColor = graphics.Color(255, 0, 0)
         pos = offscreen_canvas.width
@@ -33,9 +33,9 @@ class RunText(SampleBase):
             pos -= 1
             if (pos + len < 0):
                 pos = offscreen_canvas.width
-            break
+                break
 
-            time.sleep(0.05)
+            time.sleep(0.03)
             offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
 
 
