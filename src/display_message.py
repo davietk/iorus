@@ -10,12 +10,13 @@ import sys
 import json
 import unicodedata
 import os
+import uuid
 
-_HOSTNAME = "www.ntdc-demos.tk"
+_HOSTNAME = ""
 _PORT = 443
-_CLIENTID = "ntdc-iorus-1"
-_USERNAME = "ntdc-mqtt-user"
-_PASSWORD = "ntdc-mqtt-user-Accenture1"
+_CLIENTID = "ntdc-iorus-"+str(uuid.uuid1())
+_USERNAME = ""
+_PASSWORD = ""
 _TOPIC = "iorus/message"
 
 global message
@@ -23,7 +24,7 @@ message = ""
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
-	print("Connected with result code "+str(rc))
+	print("Client "+_CLIENTID+" connected with result code "+str(rc))
 	print "------------------------------"
 	# Subscribing in on_connect() means that if we lose the connection and
 	# reconnect then subscriptions will be renewed.
@@ -38,7 +39,8 @@ def on_message(client, userdata, msg):
 	global criticite
 	global color
 	payload = json.loads(str(msg.payload))
-	message = payload['message']
+	# message = unicode(payload['message'],'utf-8')
+	message = unicodedata.normalize('NFD', payload['message']).encode('ascii', 'ignore')
 	criticite = payload['criticite']
 	
 	if criticite == "1":
