@@ -17,7 +17,7 @@ Pour installer les scripts nécessaires au bon fonctionnement de la stack il suf
 ## Configuration
 
 Les informations de connexions au broker MQTT sont à renseigner dans le fichier `src/config.ini`.
-Pour lancer le programme d'écoute automatiquement il suffit d'ajouter la ligne suivante dans la crontab (`crontab -e`) de l'utilisateur courant : `@reboot cmd`
+Pour lancer le programme d'écoute automatiquement il suffit d'ajouter la ligne suivante dans la crontab (`crontab -e`) de l'utilisateur courant : `@reboot sleep 60 && cd /home/pi/iorus && git pull && cd src && python display_message.py > /tmp/messages.log 2>&1`
 
 ## Collecteurs
 
