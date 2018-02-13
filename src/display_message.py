@@ -11,12 +11,16 @@ import json
 import unicodedata
 import os
 import uuid
+import ConfigParser
 
-_HOSTNAME = ""
+config = ConfigParser.ConfigParser()
+config.read('./config.ini')
+
+_HOSTNAME = config.get('broker', 'hostname')
 _PORT = 443
 _CLIENTID = "ntdc-iorus-"+str(uuid.uuid1())
-_USERNAME = ""
-_PASSWORD = ""
+_USERNAME = config.get('broker', 'username')
+_PASSWORD = config.get('broker', 'password')
 _TOPIC = "iorus/message"
 
 global message
