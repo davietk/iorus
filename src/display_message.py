@@ -11,7 +11,7 @@ import json
 import unicodedata
 import os
 import uuid
-import ConfigParser
+import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
