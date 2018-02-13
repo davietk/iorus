@@ -13,14 +13,14 @@ import os
 import uuid
 import ConfigParser
 
-config = ConfigParser.ConfigParser()
-config.read('./config.ini')
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-_HOSTNAME = config.get('broker', 'hostname')
+_HOSTNAME = config['broker']['hostname']
 _PORT = 443
 _CLIENTID = "ntdc-iorus-"+str(uuid.uuid1())
-_USERNAME = config.get('broker', 'username')
-_PASSWORD = config.get('broker', 'password')
+_USERNAME = config['broker']['username']
+_PASSWORD = config['broker']['password']
 _TOPIC = "iorus/message"
 
 global message
