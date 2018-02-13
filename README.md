@@ -5,15 +5,18 @@ L'objectif principale de cette objet connecté est d'afficher des messages de ma
 
 ## Prérequis
 
-The file explorer is accessible using the button in left corner of the navigation bar. You can create a new file by clicking the **New file** button in the file explorer. You can also create folders by clicking the **New folder** button.
+ - Raspberry PI 3
+ - Matrice de led 64x32
+ - Gyrophare 5V
 
 ## Installation
 
-All your files are listed in the file explorer. You can switch from one to another by clicking a file in the list.
+Pour installer les scripts nécessaires au bon fonctionnement de la stack il suffit de cloner le repository sur le `/home/pi` puis d'exécuter le script `sh /home/pi/iorus/install.sh`.
 
-## Déploiement
+## Configuration
 
-You can rename the current file by clicking the file name in the navigation bar or by clicking the **Rename** button in the file explorer.
+Les informations de connexions au broker MQTT sont à renseigner dans le fichier `src/config.ini`.
+Pour lancer le programme d'écoute automatiquement il suffit d'ajouter la ligne suivante dans la crontab (`crontab -e`) de l'utilisateur courant : `@reboot cmd`
 
 ## Collecteurs
 
