@@ -15,3 +15,4 @@ cp /home/pi/iorus/src/runtext.py.copy /home/pi/rpi-rgb-led-matrix/bindings/pytho
 echo "Installation des packages python"
 pip install paho-mqtt==1.2
 pip install certifi
+pip install configparser

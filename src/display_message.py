@@ -33,6 +33,13 @@ def on_connect(client, userdata, flags, rc):
 	# Subscribing in on_connect() means that if we lose the connection and
 	# reconnect then subscriptions will be renewed.
 	client.subscribe(_TOPIC,1)
+	try:
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='IORUS en mode ecoute' -co='green'")
+	except MatrixError:
+		print("Erreur lors de l'affichage du dernier message")
+		pass
+	finally:
+		print message
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
