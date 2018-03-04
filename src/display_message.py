@@ -62,22 +62,27 @@ def on_message(client, userdata, msg):
 	# Initialisation du Gyrophare
 	# ===========================
 	GPIO.setup(21,GPIO.OUT)  # la pin 21 réglée en sortie (output)
-	GPIO.output(21,GPIO.HIGH)
+	
 
 	if criticite == "1":
 		color = "red"
+		GPIO.output(21,GPIO.HIGH)
 	elif criticite == "3":
 		color = "green"
+		GPIO.output(21,GPIO.HIGH)
 		time.sleep(1)
 		GPIO.cleanup(21)
 	else:
 		color = "blue"
+		GPIO.output(21,GPIO.HIGH)
 		time.sleep(3)
 		GPIO.cleanup(21)
 
 	try:
+
 		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
-		GPIO.cleanup(21)
+		if criticite == "1":
+			GPIO.cleanup(21)
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
