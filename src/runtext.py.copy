@@ -14,7 +14,7 @@ class RunText(SampleBase):
     def run(self):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        font.LoadFont("/home/pi/iorus/fonts/ter-u32b.bdf")
+        font.LoadFont("/home/pi/iorus/fonts/ter-u28b.bdf")
 
         if self.args.color == "red":
             textColor = graphics.Color(255,0,0)
@@ -35,7 +35,7 @@ class RunText(SampleBase):
                 pos = offscreen_canvas.width
                 break
 
-            time.sleep(0.03)
+            time.sleep(0.015)
             offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
 
 

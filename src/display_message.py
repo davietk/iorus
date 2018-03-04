@@ -38,7 +38,7 @@ def on_connect(client, userdata, flags, rc):
 	# reconnect then subscriptions will be renewed.
 	client.subscribe(_TOPIC,1)
 	try:
-		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='IORUS en ecoute' -co='green'")
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='IORUS ready' -co='green'")
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
@@ -50,39 +50,40 @@ def on_message(client, userdata, msg):
 	print "==="
 	print("Topic : "+msg.topic+" | Message : "+str(msg.payload))
 	print "==="
+	
 	global message
 	global criticite
 	global color
+
 	payload = json.loads(str(msg.payload))
-	# message = unicode(payload['message'],'utf-8')
 	message = unicodedata.normalize('NFD', payload['message']).encode('ascii', 'ignore')
 	criticite = payload['criticite']
 	
 	# ===========================
 	# Initialisation du Gyrophare
 	# ===========================
-	GPIO.setup(21,GPIO.OUT)  # la pin 21 réglée en sortie (output)
 	
-
+	
 	if criticite == "1":
 		color = "red"
+		print ("HIGH")
+		GPIO.setup(21,GPIO.OUT)  # le pin 21 réglée en sortie (output)
 		GPIO.output(21,GPIO.HIGH)
+		time.sleep(2)
 	elif criticite == "3":
 		color = "green"
-		GPIO.output(21,GPIO.HIGH)
-		time.sleep(1)
-		GPIO.cleanup(21)
 	else:
 		color = "blue"
+		GPIO.setup(21,GPIO.OUT)  # le pin 21 réglée en sortie (output)
 		GPIO.output(21,GPIO.HIGH)
-		time.sleep(3)
+		time.sleep(2)
 		GPIO.cleanup(21)
-
+	
 	try:
-
 		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
 		if criticite == "1":
 			GPIO.cleanup(21)
+			
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
