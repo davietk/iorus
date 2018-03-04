@@ -12,6 +12,8 @@ import unicodedata
 import os
 import uuid
 import configparser
+import RPi.GPIO as GPIO
+import time
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -22,6 +24,8 @@ _CLIENTID = "ntdc-iorus-"+str(uuid.uuid1())
 _USERNAME = config['broker']['username']
 _PASSWORD = config['broker']['password']
 _TOPIC = "iorus/message"
+
+GPIO.setmode(GPIO.BCM)   # mode de numérotation des pins pour le gyrophare
 
 global message
 message = ""
@@ -34,7 +38,7 @@ def on_connect(client, userdata, flags, rc):
 	# reconnect then subscriptions will be renewed.
 	client.subscribe(_TOPIC,1)
 	try:
-		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='IORUS en mode ecoute' -co='green'")
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='IORUS en ecoute' -co='green'")
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
@@ -54,15 +58,26 @@ def on_message(client, userdata, msg):
 	message = unicodedata.normalize('NFD', payload['message']).encode('ascii', 'ignore')
 	criticite = payload['criticite']
 	
+	# ===========================
+	# Initialisation du Gyrophare
+	# ===========================
+	GPIO.setup(21,GPIO.OUT)  # la pin 21 réglée en sortie (output)
+	GPIO.output(21,GPIO.HIGH)
+
 	if criticite == "1":
 		color = "red"
 	elif criticite == "3":
 		color = "green"
+		time.sleep(1)
+		GPIO.cleanup(21)
 	else:
 		color = "blue"
+		time.sleep(3)
+		GPIO.cleanup(21)
 
 	try:
 		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
+		GPIO.cleanup(21)
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
