@@ -20,6 +20,8 @@ class RunText(SampleBase):
             textColor = graphics.Color(255,0,0)
         elif self.args.color == "green":
             textColor = graphics.Color(0,255,0)
+        elif self.args.color == "orange":
+            textColor = graphics.Color(255,140,0)
         else:
             textColor = graphics.Color(0,0,255)
 

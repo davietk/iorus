@@ -70,18 +70,23 @@ def on_message(client, userdata, msg):
 		GPIO.setup(21,GPIO.OUT)  # le pin 21 réglée en sortie (output)
 		GPIO.output(21,GPIO.HIGH)
 		time.sleep(2)
+	elif criticite == "2":
+		color = "orange"
+		GPIO.setup(21,GPIO.OUT)  # le pin 21 réglée en sortie (output)
+		GPIO.output(21,GPIO.HIGH)
+		time.sleep(2)
 	elif criticite == "3":
-		color = "green"
-	else:
 		color = "blue"
 		GPIO.setup(21,GPIO.OUT)  # le pin 21 réglée en sortie (output)
 		GPIO.output(21,GPIO.HIGH)
 		time.sleep(2)
 		GPIO.cleanup(21)
-	
+	else:
+		color = "green"
+
 	try:
 		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
-		if criticite == "1":
+		if criticite == "1" or criticite == "2":
 			GPIO.cleanup(21)
 			
 	except MatrixError:
