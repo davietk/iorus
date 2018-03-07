@@ -25,7 +25,6 @@ class RunText(SampleBase):
         else:
             textColor = graphics.Color(0,0,255)
 
-        #textColor = graphics.Color(255, 0, 0)
         pos = offscreen_canvas.width
         my_text = self.args.text
 
