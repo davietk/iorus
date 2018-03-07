@@ -21,7 +21,7 @@ class RunText(SampleBase):
         elif self.args.color == "green":
             textColor = graphics.Color(0,255,0)
         elif self.args.color == "orange":
-            textColor = graphics.Color(255,140,0)
+            textColor = graphics.Color(255,165,0)
         else:
             textColor = graphics.Color(0,0,255)
 
