@@ -50,7 +50,7 @@ def on_message(client, userdata, msg):
 	print "==="
 	print("Topic : "+msg.topic+" | Message : "+str(msg.payload))
 	print "==="
-	
+
 	global message
 	global criticite
 	global color
@@ -58,12 +58,12 @@ def on_message(client, userdata, msg):
 	payload = json.loads(str(msg.payload))
 	message = unicodedata.normalize('NFD', payload['message']).encode('ascii', 'ignore')
 	criticite = payload['criticite']
-	
+
 	# ===========================
 	# Initialisation du Gyrophare
 	# ===========================
-	
-	
+
+
 	if criticite == "1":
 		color = "red"
 		print ("HIGH")
@@ -86,9 +86,11 @@ def on_message(client, userdata, msg):
 
 	try:
 		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
+		# Ajout d'un second appel pour afficher deux fois le message
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='"+str(message)+"' -co='"+str(color)+"'")
 		if criticite == "1" or criticite == "2":
 			GPIO.cleanup(21)
-			
+
 	except MatrixError:
 		print("Erreur lors de l'affichage du dernier message")
 		pass
@@ -140,4 +142,3 @@ except KeyboardInterrupt:
 # Other loop*() functions are available that give a threaded interface and a manual interface.
 client.loop_forever()
 #client.loop_start()
-
