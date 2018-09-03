@@ -102,11 +102,13 @@ def on_disconnect(client, userdata, rc):
 	print("on_disconnect")
 	if rc != 0:
 		print("Unexpected disconnection.")
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='Un. Deconnexion' -co='red'")
 		print (client)
 		print (userdata)
 		print (rc)
 	else:
 		print("Deconnexion")
+		os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='Deconnexion' -co='red'")
 
 # ================================================================================================
 # MAIN
@@ -131,6 +133,7 @@ try:
 
 except Exception, e:
   logging.error("Cannot connect to MQTT broker at %s:%d: %s" % (_HOSTNAME, _PORT, str(e)))
+  os.system("sudo python /home/pi/rpi-rgb-led-matrix/bindings/python/samples/runtext.py --led-no-hardware-pulse=true --led-chain=2 --led-slowdown-gpio 2 -t='Connexion broker impossible' -co='red'")
   # Waiting error
   raise
 except KeyboardInterrupt:
