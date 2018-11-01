@@ -21,10 +21,10 @@ for task in tasks_list:
 	if criticite == "":
 		criticite = 3
 
-	print ("https://www.ntdc-demos.tk/node-red/node/iorus?message="+str(message)+"&criticite="+str(criticite))
+	print ("https://demos.liquidstudio-nantes.fr/node-red/node/iorus?message="+str(message)+"&criticite="+str(criticite))
 
 	# Appel du endpoint pour envoi du message
-	result = requests.get("https://www.ntdc-demos.tk/node-red/node/iorus?message="+str(message)+"&criticite="+str(criticite), auth=(config['nodered']['login'], config['nodered']['password']))
+	result = requests.get("https://demos.liquidstudio-nantes.fr/node-red/node/iorus?message="+str(message)+"&criticite="+str(criticite), auth=(config['nodered']['login'], config['nodered']['password']))
 	print (str(result))
 
 	# Suppression de la tache une fois quelle a été affiché
