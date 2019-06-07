@@ -20,7 +20,7 @@ config.read('config.ini')
 
 _HOSTNAME = config['broker']['hostname']
 _PORT = 443
-_CLIENTID = "ntdc-iorus-"+str(uuid.uuid1())
+_CLIENTID = "iot-atc-iorus-"+str(uuid.uuid1())
 _USERNAME = config['broker']['username']
 _PASSWORD = config['broker']['password']
 _TOPIC = "iorus/message"
@@ -117,7 +117,9 @@ def on_disconnect(client, userdata, rc):
 # Config client
 client = mqtt.Client(_CLIENTID, False, None, "MQTTv311", "websockets")
 # Path du certificat
-client.tls_set("/etc/ssl/certs/ca-certificates.crt")
+client.tls_set("/etc/ssl/certs/ca-certificates.crt", cert_reqs=ssl.CERT_NONE, tls_version = ssl.PROTOCOL_TLSv1_2)
+#client.tls_set_context(context="mqtt")
+client.tls_insecure_set(True)
 # Connexion /Reconnexion
 client.on_connect = on_connect
 # Réception message
