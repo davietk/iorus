@@ -1,0 +1,16 @@
+[Unit]
+Description=LED Matrix Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/led-matrix-dashboard
+EnvironmentFile=/etc/default/led-matrix-dashboard
+ExecStart=/opt/led-matrix-dashboard/.venv/bin/python -m app.main --config /opt/led-matrix-dashboard/config.yaml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

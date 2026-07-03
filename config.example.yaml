@@ -1,0 +1,69 @@
+app:
+  poll_sleep_seconds: 1
+  fallback_message: "Aucune donnee"
+
+display:
+  width: 64
+  height: 32
+  brightness: 60
+  rotation_seconds: 6
+
+mqtt:
+  enabled: true
+  host: "homeassistant.local"
+  port: 1883
+  username: ""
+  password: ""
+  client_id: "led-matrix-pi"
+  discovery_prefix: "homeassistant"
+  state_prefix: "led_matrix"
+  device_id: "led_matrix_pi"
+
+connectors:
+  - type: weather_openmeteo
+    enabled: true
+    name: weather_paris
+    interval_seconds: 600
+    latitude: 48.8566
+    longitude: 2.3522
+    timezone: Europe/Paris
+
+  - type: stocks_finnhub
+    enabled: false
+    name: stocks_us
+    interval_seconds: 300
+    symbols:
+      - AAPL
+      - MSFT
+      - NVDA
+    token_env: FINNHUB_API_TOKEN
+
+  - type: news_newsapi
+    enabled: false
+    name: news_fr
+    interval_seconds: 900
+    language: fr
+    page_size: 3
+    query: "intelligence artificielle"
+    api_key_env: NEWSAPI_KEY
+
+  - type: homeassistant_entities
+    enabled: false
+    name: ha_sensors
+    interval_seconds: 30
+    base_url: "http://homeassistant.local:8123"
+    token_env: HA_TOKEN
+    entities:
+      - entity_id: sensor.openweathermap_temperature
+        title: "Temperature exterieure"
+      - entity_id: weather.maison
+        title: "Meteo maison"
+      - entity_id: sensor.energy_current_hour
+        title: "Conso heure"
+
+  - type: garmin_connect
+    enabled: false
+    name: garmin_training
+    interval_seconds: 1800
+    email_env: GARMIN_EMAIL
+    password_env: GARMIN_PASSWORD
