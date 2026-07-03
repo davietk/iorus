@@ -74,6 +74,8 @@ CONNECTOR_ICONS: dict[str, tuple[str, ...]] = {
 PIXEL_FONT_3X5: dict[str, tuple[str, ...]] = {
     " ": ("000", "000", "000", "000", "000"),
     ".": ("000", "000", "000", "000", "010"),
+    "'": ("010", "010", "000", "000", "000"),
+    ",": ("000", "000", "000", "010", "100"),
     ":": ("000", "010", "000", "010", "000"),
     "%": ("101", "001", "010", "100", "101"),
     "/": ("001", "001", "010", "100", "100"),
@@ -226,11 +228,13 @@ class MatrixDisplay:
         connector_type: str,
         color: tuple[int, int, int],
     ) -> None:
+        # Contrast frame makes icons readable on low-pitch HUB75 panels.
+        draw.rectangle((0, 0, 7, 7), fill=(12, 12, 12), outline=color)
         icon = CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"])
         for y, row in enumerate(icon):
             for x, bit in enumerate(row):
                 if bit == "1":
-                    draw.point((x + 1, y + 1), fill=color)
+                    draw.point((x + 1, y + 1), fill=(255, 255, 255))
 
     def _draw_scrolling_text(
         self,
@@ -242,7 +246,8 @@ class MatrixDisplay:
     ) -> None:
         text_width = self._text_width(draw, text)
         if text_width <= max_width:
-            self._draw_pixel_text(draw, text, x=x, y=y, scale=2, color=(255, 210, 120))
+            centered_x = x + max(0, (max_width - text_width) // 2)
+            self._draw_pixel_text(draw, text, x=centered_x, y=y, scale=2, color=(255, 210, 120))
             self._reset_scroll()
             return
 
@@ -277,7 +282,7 @@ class MatrixDisplay:
     def _text_width(self, draw: ImageDraw.ImageDraw, text: str) -> int:
         del draw
         normalized = self._normalize_text(text)
-        return len(normalized) * ((3 * 2) + 1)
+        return self._pixel_text_width(normalized, scale=2)
 
     def _truncate_text(self, text: str, max_chars: int) -> str:
         if len(text) <= max_chars:
@@ -293,9 +298,40 @@ class MatrixDisplay:
         self._scroll_pause_until = 0.0
 
     def _normalize_text(self, text: str) -> str:
+        replacements = {
+            "œ": "oe",
+            "Œ": "OE",
+            "æ": "ae",
+            "Æ": "AE",
+            "ç": "c",
+            "Ç": "C",
+            "’": "'",
+            "`": "'",
+            "´": "'",
+        }
+        for source, target in replacements.items():
+            text = text.replace(source, target)
+
         normalized = unicodedata.normalize("NFKD", text)
         ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
-        return ascii_only.upper()
+        upper = ascii_only.upper()
+
+        filtered_chars: list[str] = []
+        for char in upper:
+            if char in PIXEL_FONT_3X5:
+                filtered_chars.append(char)
+            elif char.isalnum():
+                filtered_chars.append("?")
+            else:
+                filtered_chars.append(" ")
+        return "".join(filtered_chars)
+
+    def _pixel_text_width(self, text: str, scale: int) -> int:
+        if not text:
+            return 0
+        glyph_width = 3 * scale
+        spacing = 1
+        return (len(text) * glyph_width) + ((len(text) - 1) * spacing)
 
     def _draw_pixel_text(
         self,
