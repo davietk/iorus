@@ -10,6 +10,7 @@ class ConnectorItem:
     title: str
     body: str
     connector_type: str = "generic"
+    icon_mdi: str | None = None
     updated_at: datetime = field(default_factory=datetime.utcnow)
 
     def as_lines(self) -> list[str]:

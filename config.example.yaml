@@ -57,8 +57,11 @@ connectors:
     entities:
       - entity_id: sensor.openweathermap_temperature
         title: "Temperature exterieure"
+        icon_mdi: mdiWeatherPartlyCloudy
       - entity_id: weather.maison
         title: "Meteo maison"
+        icon_mdi: mdiHome
       - entity_id: sensor.energy_current_hour
         title: "Conso heure"
+        icon_mdi: mdiChartLine
 

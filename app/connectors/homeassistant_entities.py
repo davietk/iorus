@@ -55,10 +55,12 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                 entity_id = entity_cfg
                 title_override = None
                 attribute = None
+                icon_mdi = None
             else:
                 entity_id = entity_cfg.get("entity_id")
                 title_override = entity_cfg.get("title")
                 attribute = entity_cfg.get("attribute")
+                icon_mdi = entity_cfg.get("icon_mdi") or entity_cfg.get("icon")
 
             if not entity_id:
                 continue
@@ -70,6 +72,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                         connector_name=self.name,
                         title=title_override or entity_id,
                         body="Entite introuvable",
+                        icon_mdi=str(icon_mdi) if icon_mdi else None,
                         updated_at=datetime.utcnow(),
                     )
                 )
@@ -77,6 +80,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
 
             attrs = state_obj.get("attributes") or {}
             title = title_override or attrs.get("friendly_name") or entity_id
+            effective_icon_mdi = icon_mdi or attrs.get("icon")
 
             if attribute:
                 value = attrs.get(attribute, "N/A")
@@ -91,6 +95,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                     connector_name=self.name,
                     title=str(title),
                     body=str(body),
+                    icon_mdi=str(effective_icon_mdi) if effective_icon_mdi else None,
                     updated_at=datetime.utcnow(),
                 )
             )

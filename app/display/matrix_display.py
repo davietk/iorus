@@ -62,6 +62,57 @@ CONNECTOR_ICONS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+MDI_ICON_ALIASES: dict[str, tuple[str, ...]] = {
+    "mdi-account-circle": (
+        "011110",
+        "100001",
+        "101101",
+        "100001",
+        "100001",
+        "011110",
+    ),
+    "mdi-home": (
+        "001100",
+        "011110",
+        "111111",
+        "110011",
+        "110011",
+        "111111",
+    ),
+    "mdi-weather-partly-cloudy": (
+        "001100",
+        "011110",
+        "111111",
+        "111111",
+        "011110",
+        "001100",
+    ),
+    "mdi-newspaper": (
+        "111111",
+        "100001",
+        "111101",
+        "101101",
+        "111101",
+        "100001",
+    ),
+    "mdi-chart-line": (
+        "000001",
+        "000011",
+        "001101",
+        "011001",
+        "110001",
+        "100000",
+    ),
+    "mdi-lightbulb": (
+        "011110",
+        "011110",
+        "011110",
+        "001100",
+        "001100",
+        "001100",
+    ),
+}
+
 PIXEL_FONT_3X5: dict[str, tuple[str, ...]] = {
     " ": ("000", "000", "000", "000", "000"),
     ".": ("000", "000", "000", "000", "010"),
@@ -172,7 +223,6 @@ class MatrixDisplay:
             [
                 item.title.strip()[:16],
                 item.body.strip().replace("\n", " ")[:32],
-                f"{item.connector_name[:8]} {item.updated_at.strftime('%H:%M')}",
             ]
         )
 
@@ -194,22 +244,24 @@ class MatrixDisplay:
         connector_type = item.connector_type or "generic"
         accent = CONNECTOR_COLORS.get(connector_type, CONNECTOR_COLORS["generic"])
 
-        self._draw_icon(draw, connector_type, accent)
+        title_height = max(8, self.config.height // 3)
+        content_height = max(8, self.config.height - title_height)
+        content_scale = max(2, round((content_height * 0.8) / 5))
+
+        self._draw_icon(draw, connector_type, accent, item.icon_mdi)
 
         title = self._normalize_text(item.title.strip())
         title = self._truncate_text(title, 11)
-        self._draw_pixel_text(draw, title, x=8, y=1, scale=1, color=accent)
+        title_y = max(0, (title_height - 5) // 2)
+        self._draw_pixel_text(draw, title, x=10, y=title_y, scale=1, color=accent)
 
         body = item.body.strip().replace("\n", " ")
         body = self._normalize_text(body)
         body_x = 1
-        body_y = 8
+        text_height = 5 * content_scale
+        body_y = title_height + max(0, (content_height - text_height) // 2)
         max_body_width = self.config.width - 2
-        self._draw_scrolling_text(draw, body, body_x, body_y, max_body_width)
-
-        footer = self._normalize_text(f"{item.updated_at.strftime('%H:%M')} {item.connector_name}")
-        footer = self._truncate_text(footer, 14)
-        self._draw_pixel_text(draw, footer, x=1, y=26, scale=1, color=(150, 150, 150))
+        self._draw_scrolling_text(draw, body, body_x, body_y, max_body_width, content_scale)
 
         self._matrix.SetImage(image, 0, 0)
 
@@ -218,10 +270,11 @@ class MatrixDisplay:
         draw: ImageDraw.ImageDraw,
         connector_type: str,
         color: tuple[int, int, int],
+        icon_mdi: str | None,
     ) -> None:
         # Contrast frame makes icons readable on low-pitch HUB75 panels.
         draw.rectangle((0, 0, 7, 7), fill=(12, 12, 12), outline=color)
-        icon = CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"])
+        icon = self._resolve_icon_bitmap(connector_type, icon_mdi)
         for y, row in enumerate(icon):
             for x, bit in enumerate(row):
                 if bit == "1":
@@ -234,11 +287,12 @@ class MatrixDisplay:
         x: int,
         y: int,
         max_width: int,
+        scale: int,
     ) -> None:
-        text_width = self._text_width(draw, text)
+        text_width = self._text_width(draw, text, scale)
         if text_width <= max_width:
             centered_x = x + max(0, (max_width - text_width) // 2)
-            self._draw_pixel_text(draw, text, x=centered_x, y=y, scale=2, color=(255, 210, 120))
+            self._draw_pixel_text(draw, text, x=centered_x, y=y, scale=scale, color=(255, 210, 120))
             self._reset_scroll()
             return
 
@@ -260,20 +314,20 @@ class MatrixDisplay:
                 self._scroll_pause_until = now + self._scroll_pause_seconds
 
         offset_x = x - self._scroll_offset
-        self._draw_pixel_text(draw, text, x=offset_x, y=y, scale=2, color=(255, 210, 120))
+        self._draw_pixel_text(draw, text, x=offset_x, y=y, scale=scale, color=(255, 210, 120))
         self._draw_pixel_text(
             draw,
             text,
             x=offset_x + text_width + self._scroll_gap_px,
             y=y,
-            scale=2,
+            scale=scale,
             color=(255, 210, 120),
         )
 
-    def _text_width(self, draw: ImageDraw.ImageDraw, text: str) -> int:
+    def _text_width(self, draw: ImageDraw.ImageDraw, text: str, scale: int) -> int:
         del draw
         normalized = self._normalize_text(text)
-        return self._pixel_text_width(normalized, scale=2)
+        return self._pixel_text_width(normalized, scale=scale)
 
     def _truncate_text(self, text: str, max_chars: int) -> str:
         if len(text) <= max_chars:
@@ -323,6 +377,45 @@ class MatrixDisplay:
         glyph_width = 3 * scale
         spacing = 1
         return (len(text) * glyph_width) + ((len(text) - 1) * spacing)
+
+    def _resolve_icon_bitmap(self, connector_type: str, icon_mdi: str | None) -> tuple[str, ...]:
+        if icon_mdi:
+            mdi_key = self._normalize_mdi_name(icon_mdi)
+            if mdi_key in MDI_ICON_ALIASES:
+                return MDI_ICON_ALIASES[mdi_key]
+
+            # Keyword fallback when exact icon isn't in local alias table.
+            if any(token in mdi_key for token in ("account", "person", "user")):
+                return MDI_ICON_ALIASES["mdi-account-circle"]
+            if any(token in mdi_key for token in ("home", "house")):
+                return MDI_ICON_ALIASES["mdi-home"]
+            if any(token in mdi_key for token in ("weather", "sun", "cloud")):
+                return MDI_ICON_ALIASES["mdi-weather-partly-cloudy"]
+            if any(token in mdi_key for token in ("chart", "stock", "finance", "trend")):
+                return MDI_ICON_ALIASES["mdi-chart-line"]
+            if any(token in mdi_key for token in ("news", "newspaper")):
+                return MDI_ICON_ALIASES["mdi-newspaper"]
+            if any(token in mdi_key for token in ("light", "lamp", "bulb")):
+                return MDI_ICON_ALIASES["mdi-lightbulb"]
+
+        return CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"])
+
+    def _normalize_mdi_name(self, name: str) -> str:
+        raw = name.strip()
+        if not raw:
+            return ""
+        if raw.startswith("mdi") and not raw.startswith("mdi-"):
+            raw = "mdi-" + raw[3:]
+
+        normalized_chars: list[str] = []
+        for index, char in enumerate(raw):
+            if char.isupper() and index > 0 and raw[index - 1] != "-":
+                normalized_chars.append("-")
+            if char == "_":
+                normalized_chars.append("-")
+            else:
+                normalized_chars.append(char.lower())
+        return "".join(normalized_chars)
 
     def _draw_pixel_text(
         self,
