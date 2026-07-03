@@ -5,7 +5,6 @@ PROJECT_SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALL_DIR="/opt/led-matrix-dashboard"
 SERVICE_NAME="led-matrix-dashboard"
 ENV_FILE="/etc/default/${SERVICE_NAME}"
-RGBMATRIX_REPO_DIR="/tmp/rpi-rgb-led-matrix"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Ce script doit etre lance en root (sudo)."
@@ -16,7 +15,7 @@ PI_USER="${SUDO_USER:-pi}"
 
 echo "[1/9] Installation des dependances systeme"
 apt update
-apt install -y python3 python3-venv python3-pip python3-dev git build-essential cmake rsync
+apt install -y python3 python3-venv python3-pip python3-dev cython3 git build-essential cmake rsync
 
 echo "[2/9] Copie du projet vers ${INSTALL_DIR}"
 mkdir -p "${INSTALL_DIR}"
@@ -38,23 +37,8 @@ else
   if runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/pip" install rpi-rgb-led-matrix >/dev/null 2>&1; then
     echo "rgbmatrix installe via pip"
   else
-    echo "Installation pip impossible, compilation depuis la source officielle"
-    rm -rf "${RGBMATRIX_REPO_DIR}"
-    runuser -u "${PI_USER}" -- git clone --depth 1 https://github.com/hzeller/rpi-rgb-led-matrix.git "${RGBMATRIX_REPO_DIR}"
-
-    INSTALLABLE_DIR="$(find "${RGBMATRIX_REPO_DIR}" -maxdepth 4 \( -name setup.py -o -name pyproject.toml \) -print | grep '/bindings/python/' | head -n1 | xargs -r dirname || true)"
-
-    if [[ -z "${INSTALLABLE_DIR}" ]]; then
-      echo "Aucun package Python installable detecte, tentative de generation via make build-python"
-      runuser -u "${PI_USER}" -- bash -lc "cd '${RGBMATRIX_REPO_DIR}' && make build-python"
-      INSTALLABLE_DIR="$(find "${RGBMATRIX_REPO_DIR}" -maxdepth 5 \( -name setup.py -o -name pyproject.toml \) -print | grep '/bindings/python/' | head -n1 | xargs -r dirname || true)"
-    fi
-
-    if [[ -n "${INSTALLABLE_DIR}" ]]; then
-      runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/pip" install "${INSTALLABLE_DIR}"
-    else
-      echo "ATTENTION: impossible de trouver un dossier Python installable pour rgbmatrix"
-    fi
+    echo "Installation pip impossible, tentative via le depot officiel"
+    runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/pip" install "git+https://github.com/hzeller/rpi-rgb-led-matrix.git"
   fi
 
   if ! runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/python" -c "import rgbmatrix" >/dev/null 2>&1; then
