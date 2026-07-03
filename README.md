@@ -33,7 +33,9 @@ pip install -r requirements.txt
 ### Driver matrice LED
 
 Le rendu materiel repose sur `rpi-rgb-led-matrix` (bibliotheque C++/Python).
-Installe-la sur le Pi selon la documentation officielle:
+Le script `scripts/install_pi.sh` tente maintenant d'installer automatiquement le module Python `rgbmatrix` (pip puis compilation depuis la source officielle si necessaire).
+
+Si besoin, installation manuelle selon la documentation officielle:
 https://github.com/hzeller/rpi-rgb-led-matrix
 
 Si la bibliotheque n'est pas disponible, l'application tourne en mode console (simulation texte).
