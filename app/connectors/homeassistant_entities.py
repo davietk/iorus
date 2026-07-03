@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import requests
@@ -10,9 +11,13 @@ from app.connectors.base import BaseConnector
 from app.models import ConnectorItem
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 class HomeAssistantEntitiesConnector(BaseConnector):
     def fetch(self) -> list[ConnectorItem]:
         base_url = str(self.settings.get("base_url", "http://homeassistant.local:8123")).rstrip("/")
+        timeout_seconds = float(self.settings.get("timeout_seconds", 10))
         token = self.settings.get("token")
         token_env = self.settings.get("token_env")
         if not token and token_env:
@@ -24,7 +29,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                     connector_name=self.name,
                     title="Home Assistant",
                     body="Token Home Assistant manquant",
-                    updated_at=datetime.utcnow(),
+                    updated_at=datetime.now(timezone.utc),
                 )
             ]
 
@@ -35,7 +40,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                     connector_name=self.name,
                     title="Home Assistant",
                     body="Aucune entite configuree",
-                    updated_at=datetime.utcnow(),
+                    updated_at=datetime.now(timezone.utc),
                 )
             ]
 
@@ -43,8 +48,20 @@ class HomeAssistantEntitiesConnector(BaseConnector):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        response = requests.get(f"{base_url}/api/states", headers=headers, timeout=10)
-        response.raise_for_status()
+        try:
+            response = requests.get(f"{base_url}/api/states", headers=headers, timeout=timeout_seconds)
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            LOGGER.warning("Home Assistant indisponible (%s): %s", base_url, exc)
+            return [
+                ConnectorItem(
+                    connector_name=self.name,
+                    title="Home Assistant",
+                    body="HA indisponible - reconnexion...",
+                    icon_mdi="mdiHome",
+                    updated_at=datetime.now(timezone.utc),
+                )
+            ]
 
         states = response.json()
         states_by_entity = {state.get("entity_id"): state for state in states}
@@ -73,7 +90,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                         title=title_override or entity_id,
                         body="Entite introuvable",
                         icon_mdi=str(icon_mdi) if icon_mdi else None,
-                        updated_at=datetime.utcnow(),
+                        updated_at=datetime.now(timezone.utc),
                     )
                 )
                 continue
@@ -96,7 +113,7 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                     title=str(title),
                     body=str(body),
                     icon_mdi=str(effective_icon_mdi) if effective_icon_mdi else None,
-                    updated_at=datetime.utcnow(),
+                    updated_at=datetime.now(timezone.utc),
                 )
             )
 
@@ -108,6 +125,6 @@ class HomeAssistantEntitiesConnector(BaseConnector):
                 connector_name=self.name,
                 title="Home Assistant",
                 body="Configuration entites vide",
-                updated_at=datetime.utcnow(),
+                updated_at=datetime.now(timezone.utc),
             )
         ]

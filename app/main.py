@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.config import DEFAULT_CONFIG_PATH, load_config
 from app.connectors import build_connectors
@@ -90,7 +90,7 @@ def run() -> None:
                             title="Erreur",
                             body=str(exc)[:80],
                             connector_type=connector.connector_type,
-                            updated_at=datetime.utcnow(),
+                            updated_at=datetime.now(timezone.utc),
                         )
                     ]
                     mqtt_bridge.publish_connector_state(connector.name, f"Erreur: {exc}")
@@ -109,6 +109,8 @@ def run() -> None:
                 if now - last_rotation >= rotation_seconds:
                     display_cursor = (display_cursor + 1) % len(playlist)
                     last_rotation = now
+                else:
+                    display_cursor = display_cursor % len(playlist)
                 current_item = playlist[display_cursor]
                 display.show_item(current_item)
 

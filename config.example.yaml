@@ -54,6 +54,7 @@ connectors:
     name: ha_sensors
     interval_seconds: 30
     base_url: "http://homeassistant.local:8123"
+    timeout_seconds: 10
     token_env: HA_TOKEN
     entities:
       - entity_id: sensor.openweathermap_temperature
