@@ -7,6 +7,7 @@ display:
   height: 32
   brightness: 60
   no_hardware_pulse: true
+  frame_sleep_seconds: 0.15
   rotation_seconds: 6
 
 mqtt:

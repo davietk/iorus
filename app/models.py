@@ -9,6 +9,7 @@ class ConnectorItem:
     connector_name: str
     title: str
     body: str
+    connector_type: str = "generic"
     updated_at: datetime = field(default_factory=datetime.utcnow)
 
     def as_lines(self) -> list[str]:

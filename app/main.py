@@ -25,11 +25,6 @@ def _setup_logging() -> None:
     )
 
 
-def _item_to_display_lines(item: ConnectorItem) -> list[str]:
-    timestamp = item.updated_at.strftime("%H:%M")
-    return [f"{item.title}", item.body[:48], f"{item.connector_name} {timestamp}"]
-
-
 def run() -> None:
     _setup_logging()
     parser = _build_parser()
@@ -57,7 +52,8 @@ def run() -> None:
         mqtt_bridge.publish_discovery_for_connector(connector.name)
     mqtt_bridge.publish_discovery_for_connector("status")
 
-    poll_sleep_seconds = float(config.get("app", {}).get("poll_sleep_seconds", 1.0))
+    app_poll_sleep_seconds = float(config.get("app", {}).get("poll_sleep_seconds", 1.0))
+    frame_sleep_seconds = float(display_cfg.get("frame_sleep_seconds", 0.15))
     fallback_message = str(config.get("app", {}).get("fallback_message", "Aucune donnee"))
 
     next_fetch_at: dict[str, float] = {}
@@ -77,6 +73,9 @@ def run() -> None:
 
                 try:
                     items = connector.fetch()
+                    for item in items:
+                        if not item.connector_type or item.connector_type == "generic":
+                            item.connector_type = connector.connector_type
                     latest_items[connector.name] = items
                     if items:
                         mqtt_bridge.publish_connector_state(connector.name, items[0].body[:255])
@@ -89,6 +88,7 @@ def run() -> None:
                             connector_name=connector.name,
                             title="Erreur",
                             body=str(exc)[:80],
+                            connector_type=connector.connector_type,
                             updated_at=datetime.utcnow(),
                         )
                     ]
@@ -109,9 +109,9 @@ def run() -> None:
                     display_cursor = (display_cursor + 1) % len(playlist)
                     last_rotation = now
                 current_item = playlist[display_cursor]
-                display.show_lines(_item_to_display_lines(current_item))
+                display.show_item(current_item)
 
-            time.sleep(poll_sleep_seconds)
+            time.sleep(min(app_poll_sleep_seconds, frame_sleep_seconds))
     except KeyboardInterrupt:
         logging.info("Arret manuel")
     finally:
