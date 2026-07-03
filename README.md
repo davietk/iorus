@@ -65,6 +65,7 @@ Puis adapte `config.yaml`:
 - Entites Home Assistant a afficher
 - Parametres MQTT de Home Assistant
 - Affichage: `display.main_font_height_px` pour regler la taille de la police de la zone principale
+- Affichage: `display.main_font_style` pour le style de police principal (`compact`, `regular`, `wide`, `bold`, `spaced`)
 
 ## 4) Lancement
 

@@ -195,6 +195,7 @@ class DisplayConfig:
     no_hardware_pulse: bool = False
     scroll_step_seconds: float = 0.09
     main_font_height_px: int = 16
+    main_font_style: str = "regular"
 
 
 class MatrixDisplay:
@@ -275,7 +276,8 @@ class MatrixDisplay:
         requested_text_height = int(self.config.main_font_height_px)
         max_text_height = max(5, content_height)
         content_text_height_px = max(5, min(requested_text_height, max_text_height))
-        content_scale_x = 3
+        font_style = self._normalize_font_style(self.config.main_font_style)
+        content_scale_x, content_spacing, content_bold = self._font_style_params(font_style)
         content_row_heights = self._build_row_heights(content_text_height_px)
 
         icon_size = 8
@@ -309,6 +311,8 @@ class MatrixDisplay:
             body_y,
             max_body_width,
             content_scale_x,
+            content_spacing,
+            content_bold,
             content_row_heights,
         )
 
@@ -341,9 +345,11 @@ class MatrixDisplay:
         y: int,
         max_width: int,
         scale_x: int,
+        spacing: int,
+        bold: bool,
         row_heights: list[int],
     ) -> None:
-        text_width = self._text_width(draw, text, scale_x)
+        text_width = self._text_width(draw, text, scale_x, spacing, bold)
         if text_width <= max_width:
             centered_x = x + max(0, (max_width - text_width) // 2)
             self._draw_pixel_text(
@@ -353,6 +359,8 @@ class MatrixDisplay:
                 y=y,
                 scale=scale_x,
                 color=(255, 210, 120),
+                spacing=spacing,
+                bold=bold,
                 row_heights=row_heights,
             )
             self._reset_scroll()
@@ -383,6 +391,8 @@ class MatrixDisplay:
             y=y,
             scale=scale_x,
             color=(255, 210, 120),
+            spacing=spacing,
+            bold=bold,
             row_heights=row_heights,
         )
         self._draw_pixel_text(
@@ -392,13 +402,22 @@ class MatrixDisplay:
             y=y,
             scale=scale_x,
             color=(255, 210, 120),
+            spacing=spacing,
+            bold=bold,
             row_heights=row_heights,
         )
 
-    def _text_width(self, draw: ImageDraw.ImageDraw, text: str, scale: int) -> int:
+    def _text_width(
+        self,
+        draw: ImageDraw.ImageDraw,
+        text: str,
+        scale: int,
+        spacing: int,
+        bold: bool,
+    ) -> int:
         del draw
         normalized = self._normalize_text(text)
-        return self._pixel_text_width(normalized, scale=scale)
+        return self._pixel_text_width(normalized, scale=scale, spacing=spacing, bold=bold)
 
     def _truncate_text(self, text: str, max_chars: int) -> str:
         if len(text) <= max_chars:
@@ -442,12 +461,37 @@ class MatrixDisplay:
                 filtered_chars.append(" ")
         return "".join(filtered_chars)
 
-    def _pixel_text_width(self, text: str, scale: int) -> int:
+    def _pixel_text_width(self, text: str, scale: int, spacing: int, bold: bool) -> int:
         if not text:
             return 0
-        glyph_width = 3 * scale
-        spacing = 1
-        return (len(text) * glyph_width) + ((len(text) - 1) * spacing)
+        glyph_width = (3 * scale) + (1 if bold else 0)
+        return (len(text) * glyph_width) + ((len(text) - 1) * max(0, spacing))
+
+    def _normalize_font_style(self, style: str | None) -> str:
+        raw = (style or "regular").strip().lower().replace("_", "-")
+        aliases = {
+            "classic": "regular",
+            "normal": "regular",
+            "condensed": "compact",
+            "large": "wide",
+            "expanded": "wide",
+            "strong": "bold",
+            "readable": "spaced",
+        }
+        normalized = aliases.get(raw, raw)
+        if normalized in {"compact", "regular", "wide", "bold", "spaced"}:
+            return normalized
+        return "regular"
+
+    def _font_style_params(self, style: str) -> tuple[int, int, bool]:
+        presets: dict[str, tuple[int, int, bool]] = {
+            "compact": (2, 1, False),
+            "regular": (3, 1, False),
+            "wide": (4, 1, False),
+            "bold": (3, 1, True),
+            "spaced": (3, 2, False),
+        }
+        return presets.get(style, presets["regular"])
 
     def _resolve_icon_bitmap(self, connector_type: str, icon_mdi: str | None) -> tuple[str, ...]:
         if icon_mdi:
@@ -500,6 +544,8 @@ class MatrixDisplay:
         y: int,
         scale: int,
         color: tuple[int, int, int],
+        spacing: int = 1,
+        bold: bool = False,
         row_heights: list[int] | None = None,
     ) -> None:
         cursor_x = x
@@ -518,8 +564,13 @@ class MatrixDisplay:
                         (px, py, px + scale - 1, py + row_height - 1),
                         fill=color,
                     )
+                    if bold:
+                        draw.rectangle(
+                            (px + 1, py, px + scale, py + row_height - 1),
+                            fill=color,
+                        )
                 y_cursor += row_height
-            cursor_x += (3 * scale) + 1
+            cursor_x += (3 * scale) + (1 if bold else 0) + max(0, spacing)
 
     def _build_row_heights(self, target_height: int) -> list[int]:
         target = max(5, target_height)

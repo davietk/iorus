@@ -10,6 +10,8 @@ display:
   frame_sleep_seconds: 0.15
   scroll_step_seconds: 0.09
   main_font_height_px: 16
+  # Styles disponibles: compact, regular, wide, bold, spaced
+  main_font_style: regular
   rotation_seconds: 6
 
 mqtt:

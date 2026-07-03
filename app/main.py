@@ -42,7 +42,14 @@ def run() -> None:
             no_hardware_pulse=bool(display_cfg.get("no_hardware_pulse", False)),
             scroll_step_seconds=float(display_cfg.get("scroll_step_seconds", 0.09)),
             main_font_height_px=int(display_cfg.get("main_font_height_px", 16)),
+            main_font_style=str(display_cfg.get("main_font_style", "regular")),
         )
+    )
+    logging.info(
+        "Display mode=%s, main_font_height_px=%s, main_font_style=%s",
+        display.mode,
+        display.config.main_font_height_px,
+        display.config.main_font_style,
     )
 
     mqtt_bridge = MqttBridge(config.get("mqtt", {}))
