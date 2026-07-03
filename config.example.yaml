@@ -58,11 +58,15 @@ connectors:
     interval_seconds: 30
     base_url: "http://homeassistant.local:8123"
     timeout_seconds: 10
+    # Nombre de decimales a conserver pour les valeurs numeriques (troncature, pas arrondi)
+    numeric_decimals: 1
     token_env: HA_TOKEN
     entities:
       - entity_id: sensor.openweathermap_temperature
         title: "Temperature exterieure"
         icon_mdi: mdiWeatherPartlyCloudy
+        # Optionnel: surcharge la precision pour cette entite uniquement
+        # numeric_decimals: 2
       - entity_id: weather.maison
         title: "Meteo maison"
         icon_mdi: mdiHome
