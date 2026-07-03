@@ -111,6 +111,30 @@ MDI_ICON_ALIASES: dict[str, tuple[str, ...]] = {
         "001100",
         "001100",
     ),
+    "mdi-lightbulb-outline": (
+        "011110",
+        "010010",
+        "011110",
+        "001100",
+        "001100",
+        "001100",
+    ),
+    "mdi-thermometer": (
+        "001000",
+        "001000",
+        "001000",
+        "001000",
+        "011100",
+        "011100",
+    ),
+    "mdi-currency-eur": (
+        "011110",
+        "110000",
+        "111100",
+        "110000",
+        "111100",
+        "011110",
+    ),
 }
 
 PIXEL_FONT_3X5: dict[str, tuple[str, ...]] = {
@@ -426,6 +450,10 @@ class MatrixDisplay:
                 return MDI_ICON_ALIASES["mdi-newspaper"]
             if any(token in mdi_key for token in ("light", "lamp", "bulb")):
                 return MDI_ICON_ALIASES["mdi-lightbulb"]
+            if any(token in mdi_key for token in ("thermo", "temp", "temperature")):
+                return MDI_ICON_ALIASES["mdi-thermometer"]
+            if any(token in mdi_key for token in ("currency", "euro", "eur", "money", "cash")):
+                return MDI_ICON_ALIASES["mdi-currency-eur"]
 
         return CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"])
 
