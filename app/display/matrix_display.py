@@ -16,7 +16,6 @@ CONNECTOR_COLORS: dict[str, tuple[int, int, int]] = {
     "stocks_finnhub": (76, 220, 110),
     "news_newsapi": (255, 210, 90),
     "homeassistant_entities": (255, 135, 75),
-    "garmin_connect": (255, 90, 90),
     "generic": (200, 200, 200),
 }
 
@@ -52,14 +51,6 @@ CONNECTOR_ICONS: dict[str, tuple[str, ...]] = {
         "110011",
         "110011",
         "111111",
-    ),
-    "garmin_connect": (
-        "000000",
-        "000000",
-        "001111",
-        "011111",
-        "111001",
-        "011000",
     ),
     "generic": (
         "000000",

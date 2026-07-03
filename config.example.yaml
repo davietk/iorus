@@ -62,9 +62,3 @@ connectors:
       - entity_id: sensor.energy_current_hour
         title: "Conso heure"
 
-  - type: garmin_connect
-    enabled: false
-    name: garmin_training
-    interval_seconds: 1800
-    email_env: GARMIN_EMAIL
-    password_env: GARMIN_PASSWORD

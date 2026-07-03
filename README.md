@@ -56,8 +56,6 @@ Variables d'environnement (si connecteurs actives):
 export FINNHUB_API_TOKEN="..."
 export NEWSAPI_KEY="..."
 export HA_TOKEN="..."
-export GARMIN_EMAIL="..."
-export GARMIN_PASSWORD="..."
 ```
 
 Puis adapte `config.yaml`:
@@ -65,7 +63,6 @@ Puis adapte `config.yaml`:
 - Symboles boursiers
 - Requete actualites
 - Entites Home Assistant a afficher
-- Acces Garmin Connect pour la prochaine seance
 - Parametres MQTT de Home Assistant
 
 ## 4) Lancement
@@ -93,7 +90,6 @@ Dans Home Assistant:
 - `stocks_finnhub`: cours boursiers (requiert `FINNHUB_API_TOKEN`)
 - `news_newsapi`: headlines actualites (requiert `NEWSAPI_KEY`)
 - `homeassistant_entities`: lecture directe des entites HA (requiert `HA_TOKEN`)
-- `garmin_connect`: prochaine seance d'entrainement (requiert `GARMIN_EMAIL` et `GARMIN_PASSWORD`)
 
 ## 7) Ajouter un nouveau connecteur
 
