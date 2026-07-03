@@ -245,9 +245,9 @@ class MatrixDisplay:
         connector_type = item.connector_type or "generic"
         accent = CONNECTOR_COLORS.get(connector_type, CONNECTOR_COLORS["generic"])
 
-        title_height = max(8, self.config.height // 3)
+        title_height = max(10, (self.config.height * 2) // 5)
         content_height = max(8, self.config.height - title_height)
-        content_text_height_px = 18
+        content_text_height_px = 16
         content_scale_x = 2
         content_row_heights = self._build_row_heights(content_text_height_px)
 
