@@ -169,6 +169,7 @@ class DisplayConfig:
     height: int = 32
     brightness: int = 60
     no_hardware_pulse: bool = False
+    scroll_step_seconds: float = 0.09
 
 
 class MatrixDisplay:
@@ -181,7 +182,7 @@ class MatrixDisplay:
         self._scroll_offset = 0
         self._scroll_last_tick = 0.0
         self._scroll_pause_until = 0.0
-        self._scroll_step_seconds = 0.09
+        self._scroll_step_seconds = max(0.01, float(config.scroll_step_seconds))
         self._scroll_pause_seconds = 0.8
         self._scroll_gap_px = 8
 
@@ -246,7 +247,9 @@ class MatrixDisplay:
 
         title_height = max(8, self.config.height // 3)
         content_height = max(8, self.config.height - title_height)
-        content_scale = max(2, round((content_height * 0.8) / 5))
+        content_text_height_px = 18
+        content_scale_x = 2
+        content_row_heights = self._build_row_heights(content_text_height_px)
 
         self._draw_icon(draw, connector_type, accent, item.icon_mdi)
 
@@ -258,10 +261,18 @@ class MatrixDisplay:
         body = item.body.strip().replace("\n", " ")
         body = self._normalize_text(body)
         body_x = 1
-        text_height = 5 * content_scale
+        text_height = sum(content_row_heights)
         body_y = title_height + max(0, (content_height - text_height) // 2)
         max_body_width = self.config.width - 2
-        self._draw_scrolling_text(draw, body, body_x, body_y, max_body_width, content_scale)
+        self._draw_scrolling_text(
+            draw,
+            body,
+            body_x,
+            body_y,
+            max_body_width,
+            content_scale_x,
+            content_row_heights,
+        )
 
         self._matrix.SetImage(image, 0, 0)
 
@@ -287,12 +298,21 @@ class MatrixDisplay:
         x: int,
         y: int,
         max_width: int,
-        scale: int,
+        scale_x: int,
+        row_heights: list[int],
     ) -> None:
-        text_width = self._text_width(draw, text, scale)
+        text_width = self._text_width(draw, text, scale_x)
         if text_width <= max_width:
             centered_x = x + max(0, (max_width - text_width) // 2)
-            self._draw_pixel_text(draw, text, x=centered_x, y=y, scale=scale, color=(255, 210, 120))
+            self._draw_pixel_text(
+                draw,
+                text,
+                x=centered_x,
+                y=y,
+                scale=scale_x,
+                color=(255, 210, 120),
+                row_heights=row_heights,
+            )
             self._reset_scroll()
             return
 
@@ -314,14 +334,23 @@ class MatrixDisplay:
                 self._scroll_pause_until = now + self._scroll_pause_seconds
 
         offset_x = x - self._scroll_offset
-        self._draw_pixel_text(draw, text, x=offset_x, y=y, scale=scale, color=(255, 210, 120))
+        self._draw_pixel_text(
+            draw,
+            text,
+            x=offset_x,
+            y=y,
+            scale=scale_x,
+            color=(255, 210, 120),
+            row_heights=row_heights,
+        )
         self._draw_pixel_text(
             draw,
             text,
             x=offset_x + text_width + self._scroll_gap_px,
             y=y,
-            scale=scale,
+            scale=scale_x,
             color=(255, 210, 120),
+            row_heights=row_heights,
         )
 
     def _text_width(self, draw: ImageDraw.ImageDraw, text: str, scale: int) -> int:
@@ -425,21 +454,35 @@ class MatrixDisplay:
         y: int,
         scale: int,
         color: tuple[int, int, int],
+        row_heights: list[int] | None = None,
     ) -> None:
         cursor_x = x
+        heights = row_heights if row_heights and len(row_heights) == 5 else [scale] * 5
         for char in text:
             glyph = PIXEL_FONT_3X5.get(char, PIXEL_FONT_3X5["?"])
+            y_cursor = y
             for gy, row in enumerate(glyph):
+                row_height = heights[gy]
                 for gx, bit in enumerate(row):
                     if bit != "1":
                         continue
                     px = cursor_x + gx * scale
-                    py = y + gy * scale
+                    py = y_cursor
                     draw.rectangle(
-                        (px, py, px + scale - 1, py + scale - 1),
+                        (px, py, px + scale - 1, py + row_height - 1),
                         fill=color,
                     )
+                y_cursor += row_height
             cursor_x += (3 * scale) + 1
+
+    def _build_row_heights(self, target_height: int) -> list[int]:
+        target = max(5, target_height)
+        base = target // 5
+        remainder = target % 5
+        heights = [base] * 5
+        for index in range(remainder):
+            heights[index] += 1
+        return heights
 
     def _show_console(self, lines: list[str]) -> None:
         print("\n" + "=" * 30)

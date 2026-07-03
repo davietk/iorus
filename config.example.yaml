@@ -8,6 +8,7 @@ display:
   brightness: 60
   no_hardware_pulse: true
   frame_sleep_seconds: 0.15
+  scroll_step_seconds: 0.09
   rotation_seconds: 6
 
 mqtt:

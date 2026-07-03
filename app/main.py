@@ -40,6 +40,7 @@ def run() -> None:
             height=int(display_cfg.get("height", 32)),
             brightness=int(display_cfg.get("brightness", 60)),
             no_hardware_pulse=bool(display_cfg.get("no_hardware_pulse", False)),
+            scroll_step_seconds=float(display_cfg.get("scroll_step_seconds", 0.09)),
         )
     )
 
