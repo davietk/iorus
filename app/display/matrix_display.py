@@ -13,6 +13,7 @@ class DisplayConfig:
     width: int = 64
     height: int = 32
     brightness: int = 60
+    no_hardware_pulse: bool = False
 
 
 class MatrixDisplay:
@@ -32,6 +33,9 @@ class MatrixDisplay:
             options.parallel = 1
             options.hardware_mapping = "regular"
             options.brightness = max(1, min(100, config.brightness))
+            if config.no_hardware_pulse and hasattr(options, "disable_hardware_pulsing"):
+                # Equivalent to --led-no-hardware-pulse for non-root execution.
+                options.disable_hardware_pulsing = True
 
             self._matrix = RGBMatrix(options=options)
             self._mode = "hardware"

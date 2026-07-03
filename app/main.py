@@ -44,6 +44,7 @@ def run() -> None:
             width=int(display_cfg.get("width", 64)),
             height=int(display_cfg.get("height", 32)),
             brightness=int(display_cfg.get("brightness", 60)),
+            no_hardware_pulse=bool(display_cfg.get("no_hardware_pulse", False)),
         )
     )
 

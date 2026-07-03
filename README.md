@@ -38,6 +38,10 @@ https://github.com/hzeller/rpi-rgb-led-matrix
 
 Si la bibliotheque n'est pas disponible, l'application tourne en mode console (simulation texte).
 
+Si tu vois une erreur de type `Need root ... run as root or with --led-no-hardware-pulse`:
+- active `display.no_hardware_pulse: true` dans `config.yaml` pour lancer sans root
+- ou lance l'application en root (`sudo`) pour garder le mode hardware pulse
+
 ## 3) Configuration
 
 Copie la config d'exemple:

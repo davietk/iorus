@@ -6,6 +6,7 @@ display:
   width: 64
   height: 32
   brightness: 60
+  no_hardware_pulse: true
   rotation_seconds: 6
 
 mqtt:
@@ -34,8 +35,7 @@ connectors:
     interval_seconds: 300
     symbols:
       - AAPL
-      - MSFT
-      - NVDA
+      - WPEA.PA
     token_env: FINNHUB_API_TOKEN
 
   - type: news_newsapi
