@@ -269,9 +269,8 @@ class MatrixDisplay:
         connector_type = item.connector_type or "generic"
         accent = CONNECTOR_COLORS.get(connector_type, CONNECTOR_COLORS["generic"])
 
-        title_height = 10
-        separator_height = 2
-        content_height = max(8, self.config.height - title_height - separator_height)
+        title_height = 12
+        content_height = max(8, self.config.height - title_height)
         content_text_height_px = 16
         content_scale_x = 3
         content_row_heights = self._build_row_heights(content_text_height_px)
@@ -293,18 +292,11 @@ class MatrixDisplay:
         title_y = max(0, (title_height - (5 * title_scale)) // 2)
         self._draw_pixel_text(draw, title, x=11, y=title_y, scale=title_scale, color=accent)
 
-        separator_top = title_height
-        separator_bottom = title_height + separator_height - 1
-        draw.rectangle(
-            (0, separator_top, self.config.width - 1, separator_bottom),
-            fill=(20, 20, 20),
-        )
-
         body = item.body.strip().replace("\n", " ")
         body = self._normalize_text(body)
         body_x = 1
         text_height = sum(content_row_heights)
-        content_top = title_height + separator_height
+        content_top = title_height
         body_y = content_top + max(0, (content_height - text_height) // 2)
         max_body_width = self.config.width - 2
         self._draw_scrolling_text(
