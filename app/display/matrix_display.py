@@ -269,24 +269,43 @@ class MatrixDisplay:
         connector_type = item.connector_type or "generic"
         accent = CONNECTOR_COLORS.get(connector_type, CONNECTOR_COLORS["generic"])
 
-        title_height = max(10, (self.config.height * 2) // 5)
-        content_height = max(8, self.config.height - title_height)
+        title_height = 10
+        separator_height = 2
+        content_height = max(8, self.config.height - title_height - separator_height)
         content_text_height_px = 16
         content_scale_x = 3
         content_row_heights = self._build_row_heights(content_text_height_px)
 
-        self._draw_icon(draw, connector_type, accent, item.icon_mdi)
+        icon_size = 8
+        icon_top = max(0, (title_height - icon_size) // 2)
+        self._draw_icon(
+            draw,
+            connector_type,
+            accent,
+            item.icon_mdi,
+            top_y=icon_top,
+            size=icon_size,
+        )
 
         title = self._normalize_text(item.title.strip())
         title = self._truncate_text(title, 11)
-        title_y = max(0, (title_height - 5) // 2)
-        self._draw_pixel_text(draw, title, x=10, y=title_y, scale=1, color=accent)
+        title_scale = 1
+        title_y = max(0, (title_height - (5 * title_scale)) // 2)
+        self._draw_pixel_text(draw, title, x=11, y=title_y, scale=title_scale, color=accent)
+
+        separator_top = title_height
+        separator_bottom = title_height + separator_height - 1
+        draw.rectangle(
+            (0, separator_top, self.config.width - 1, separator_bottom),
+            fill=(20, 20, 20),
+        )
 
         body = item.body.strip().replace("\n", " ")
         body = self._normalize_text(body)
         body_x = 1
         text_height = sum(content_row_heights)
-        body_y = title_height + max(0, (content_height - text_height) // 2)
+        content_top = title_height + separator_height
+        body_y = content_top + max(0, (content_height - text_height) // 2)
         max_body_width = self.config.width - 2
         self._draw_scrolling_text(
             draw,
@@ -306,14 +325,18 @@ class MatrixDisplay:
         connector_type: str,
         color: tuple[int, int, int],
         icon_mdi: str | None,
+        top_y: int,
+        size: int,
     ) -> None:
         # Contrast frame makes icons readable on low-pitch HUB75 panels.
-        draw.rectangle((0, 0, 7, 7), fill=(12, 12, 12), outline=color)
+        right = size - 1
+        bottom = top_y + size - 1
+        draw.rectangle((0, top_y, right, bottom), fill=(12, 12, 12), outline=color)
         icon = self._resolve_icon_bitmap(connector_type, icon_mdi)
         for y, row in enumerate(icon):
             for x, bit in enumerate(row):
                 if bit == "1":
-                    draw.point((x + 1, y + 1), fill=(255, 255, 255))
+                    draw.point((x + 1, top_y + y + 1), fill=(255, 255, 255))
 
     def _draw_scrolling_text(
         self,
