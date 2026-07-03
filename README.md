@@ -80,12 +80,15 @@ python -m app.main --config config.yaml
 L'app publie automatiquement des entites `sensor` via MQTT discovery:
 - Statut global du dashboard
 - Un sensor par connecteur actif
+- Un switch `LED Matrix Display` pour activer/desactiver l'affichage de la matrice
 
 Dans Home Assistant:
 1. Active MQTT
 2. Verifie que le broker est joignable depuis le Raspberry Pi
 3. Lance l'application
 4. Les entites apparaissent automatiquement
+
+Le switch `LED Matrix Display` envoie `ON/OFF` sur MQTT et la matrice est masquee/reattivee en temps reel.
 
 ## 6) Connecteurs disponibles
 

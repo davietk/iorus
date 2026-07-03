@@ -18,6 +18,8 @@ mqtt:
   enabled: true
   host: "homeassistant.local"
   port: 1883
+  # Etat par defaut du switch d'affichage expose dans Home Assistant via MQTT
+  display_default_on: true
   username: ""
   password: ""
   client_id: "led-matrix-pi"

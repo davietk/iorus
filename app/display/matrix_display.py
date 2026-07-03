@@ -254,6 +254,13 @@ class MatrixDisplay:
             ]
         )
 
+    def clear(self) -> None:
+        if self._mode == "hardware" and self._matrix is not None:
+            image = Image.new("RGB", (self.config.width, self.config.height), color=(0, 0, 0))
+            self._matrix.SetImage(image, 0, 0)
+            return
+        self._show_console(["Display off"])
+
     def _show_hardware(self, lines: list[str]) -> None:
         image = Image.new("RGB", (self.config.width, self.config.height), color=(0, 0, 0))
         draw = ImageDraw.Draw(image)

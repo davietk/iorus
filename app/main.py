@@ -60,6 +60,7 @@ def run() -> None:
     for connector in connectors:
         mqtt_bridge.publish_discovery_for_connector(connector.name)
     mqtt_bridge.publish_discovery_for_connector("status")
+    mqtt_bridge.publish_discovery_for_display_control()
 
     app_poll_sleep_seconds = float(config.get("app", {}).get("poll_sleep_seconds", 1.0))
     frame_sleep_seconds = float(display_cfg.get("frame_sleep_seconds", 0.15))
@@ -69,6 +70,7 @@ def run() -> None:
     latest_items: dict[str, list[ConnectorItem]] = {}
     display_cursor = 0
     last_rotation = 0.0
+    display_was_enabled = mqtt_bridge.is_display_enabled()
 
     for connector in connectors:
         next_fetch_at[connector.name] = 0.0
@@ -108,6 +110,17 @@ def run() -> None:
             playlist: list[ConnectorItem] = []
             for items in latest_items.values():
                 playlist.extend(items)
+
+            display_enabled = mqtt_bridge.is_display_enabled()
+            if not display_enabled:
+                if display_was_enabled:
+                    display.clear()
+                display_was_enabled = False
+                mqtt_bridge.publish_status("display_off")
+                time.sleep(min(app_poll_sleep_seconds, frame_sleep_seconds))
+                continue
+
+            display_was_enabled = True
 
             if not playlist:
                 display.show_lines(["LED Matrix", fallback_message, "Attente donnees"])
