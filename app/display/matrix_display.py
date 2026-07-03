@@ -194,6 +194,7 @@ class DisplayConfig:
     brightness: int = 60
     no_hardware_pulse: bool = False
     scroll_step_seconds: float = 0.09
+    main_font_height_px: int = 16
 
 
 class MatrixDisplay:
@@ -271,7 +272,9 @@ class MatrixDisplay:
 
         title_height = 12
         content_height = max(8, self.config.height - title_height)
-        content_text_height_px = 16
+        requested_text_height = int(self.config.main_font_height_px)
+        max_text_height = max(5, content_height)
+        content_text_height_px = max(5, min(requested_text_height, max_text_height))
         content_scale_x = 3
         content_row_heights = self._build_row_heights(content_text_height_px)
 

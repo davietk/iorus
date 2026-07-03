@@ -9,6 +9,7 @@ display:
   no_hardware_pulse: true
   frame_sleep_seconds: 0.15
   scroll_step_seconds: 0.09
+  main_font_height_px: 16
   rotation_seconds: 6
 
 mqtt:
@@ -66,4 +67,11 @@ connectors:
       - entity_id: sensor.energy_current_hour
         title: "Conso heure"
         icon_mdi: mdiChartLine
+      - entity_id: sensor.la_garnache_rain_chance
+        title: "Chance pluie"
+        icon_mdi: mdiWeatherRainy
+      - entity_id: sensor.la_garnache_daily_precipitation
+        title: "Précipitation"
+        icon_mdi: mdiWeatherRainy
+      
 
