@@ -41,7 +41,20 @@ else
     echo "Installation pip impossible, compilation depuis la source officielle"
     rm -rf "${RGBMATRIX_REPO_DIR}"
     runuser -u "${PI_USER}" -- git clone --depth 1 https://github.com/hzeller/rpi-rgb-led-matrix.git "${RGBMATRIX_REPO_DIR}"
-    runuser -u "${PI_USER}" -- bash -lc "cd '${RGBMATRIX_REPO_DIR}/bindings/python' && '${INSTALL_DIR}/.venv/bin/pip' install ."
+
+    INSTALLABLE_DIR="$(find "${RGBMATRIX_REPO_DIR}" -maxdepth 4 \( -name setup.py -o -name pyproject.toml \) -print | grep '/bindings/python/' | head -n1 | xargs -r dirname || true)"
+
+    if [[ -z "${INSTALLABLE_DIR}" ]]; then
+      echo "Aucun package Python installable detecte, tentative de generation via make build-python"
+      runuser -u "${PI_USER}" -- bash -lc "cd '${RGBMATRIX_REPO_DIR}' && make build-python"
+      INSTALLABLE_DIR="$(find "${RGBMATRIX_REPO_DIR}" -maxdepth 5 \( -name setup.py -o -name pyproject.toml \) -print | grep '/bindings/python/' | head -n1 | xargs -r dirname || true)"
+    fi
+
+    if [[ -n "${INSTALLABLE_DIR}" ]]; then
+      runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/pip" install "${INSTALLABLE_DIR}"
+    else
+      echo "ATTENTION: impossible de trouver un dossier Python installable pour rgbmatrix"
+    fi
   fi
 
   if ! runuser -u "${PI_USER}" -- "${INSTALL_DIR}/.venv/bin/python" -c "import rgbmatrix" >/dev/null 2>&1; then
