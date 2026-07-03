@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+import unicodedata
 from dataclasses import dataclass
 
 from PIL import Image, ImageDraw, ImageFont
@@ -19,77 +20,102 @@ CONNECTOR_COLORS: dict[str, tuple[int, int, int]] = {
     "generic": (200, 200, 200),
 }
 
-CONNECTOR_ICONS: dict[str, tuple[tuple[int, int], ...]] = {
-    # Sun
+CONNECTOR_ICONS: dict[str, tuple[str, ...]] = {
     "weather_openmeteo": (
-        (3, 1),
-        (1, 3),
-        (3, 3),
-        (5, 3),
-        (3, 5),
-        (2, 2),
-        (4, 2),
-        (2, 4),
-        (4, 4),
+        "001100",
+        "011110",
+        "111111",
+        "111111",
+        "011110",
+        "001100",
     ),
-    # Up chart
     "stocks_finnhub": (
-        (1, 6),
-        (2, 5),
-        (3, 4),
-        (4, 3),
-        (5, 2),
-        (5, 3),
-        (6, 2),
-        (6, 1),
+        "000001",
+        "000011",
+        "001101",
+        "011001",
+        "110001",
+        "100000",
     ),
-    # Newspaper
     "news_newsapi": (
-        (1, 1),
-        (2, 1),
-        (3, 1),
-        (4, 1),
-        (5, 1),
-        (1, 2),
-        (5, 2),
-        (1, 3),
-        (5, 3),
-        (1, 4),
-        (2, 4),
-        (3, 4),
-        (4, 4),
-        (5, 4),
-        (1, 5),
-        (5, 5),
+        "111111",
+        "100001",
+        "111101",
+        "101101",
+        "111101",
+        "100001",
     ),
-    # House
     "homeassistant_entities": (
-        (1, 4),
-        (2, 3),
-        (3, 2),
-        (4, 3),
-        (5, 4),
-        (1, 5),
-        (2, 5),
-        (3, 5),
-        (4, 5),
-        (5, 5),
-        (3, 4),
+        "001100",
+        "011110",
+        "111111",
+        "110011",
+        "110011",
+        "111111",
     ),
-    # Shoe
     "garmin_connect": (
-        (1, 5),
-        (2, 5),
-        (3, 5),
-        (4, 5),
-        (5, 5),
-        (3, 4),
-        (4, 4),
-        (5, 4),
-        (6, 4),
+        "000000",
+        "000000",
+        "001111",
+        "011111",
+        "111001",
+        "011000",
     ),
-    # Dot
-    "generic": ((3, 3),),
+    "generic": (
+        "000000",
+        "001100",
+        "001100",
+        "000000",
+        "001100",
+        "001100",
+    ),
+}
+
+PIXEL_FONT_3X5: dict[str, tuple[str, ...]] = {
+    " ": ("000", "000", "000", "000", "000"),
+    ".": ("000", "000", "000", "000", "010"),
+    ":": ("000", "010", "000", "010", "000"),
+    "%": ("101", "001", "010", "100", "101"),
+    "/": ("001", "001", "010", "100", "100"),
+    "-": ("000", "000", "111", "000", "000"),
+    "+": ("000", "010", "111", "010", "000"),
+    "?": ("111", "001", "010", "000", "010"),
+    "0": ("111", "101", "101", "101", "111"),
+    "1": ("010", "110", "010", "010", "111"),
+    "2": ("111", "001", "111", "100", "111"),
+    "3": ("111", "001", "111", "001", "111"),
+    "4": ("101", "101", "111", "001", "001"),
+    "5": ("111", "100", "111", "001", "111"),
+    "6": ("111", "100", "111", "101", "111"),
+    "7": ("111", "001", "001", "001", "001"),
+    "8": ("111", "101", "111", "101", "111"),
+    "9": ("111", "101", "111", "001", "111"),
+    "A": ("111", "101", "111", "101", "101"),
+    "B": ("110", "101", "110", "101", "110"),
+    "C": ("111", "100", "100", "100", "111"),
+    "D": ("110", "101", "101", "101", "110"),
+    "E": ("111", "100", "110", "100", "111"),
+    "F": ("111", "100", "110", "100", "100"),
+    "G": ("111", "100", "101", "101", "111"),
+    "H": ("101", "101", "111", "101", "101"),
+    "I": ("111", "010", "010", "010", "111"),
+    "J": ("001", "001", "001", "101", "111"),
+    "K": ("101", "101", "110", "101", "101"),
+    "L": ("100", "100", "100", "100", "111"),
+    "M": ("101", "111", "111", "101", "101"),
+    "N": ("101", "111", "111", "111", "101"),
+    "O": ("111", "101", "101", "101", "111"),
+    "P": ("111", "101", "111", "100", "100"),
+    "Q": ("111", "101", "101", "111", "001"),
+    "R": ("110", "101", "110", "101", "101"),
+    "S": ("111", "100", "111", "001", "111"),
+    "T": ("111", "010", "010", "010", "010"),
+    "U": ("101", "101", "101", "101", "111"),
+    "V": ("101", "101", "101", "101", "010"),
+    "W": ("101", "101", "111", "111", "101"),
+    "X": ("101", "101", "010", "101", "101"),
+    "Y": ("101", "101", "010", "010", "010"),
+    "Z": ("111", "001", "010", "100", "111"),
 }
 
 
@@ -113,7 +139,7 @@ class MatrixDisplay:
         self._scroll_pause_until = 0.0
         self._scroll_step_seconds = 0.09
         self._scroll_pause_seconds = 0.8
-        self._scroll_gap_px = 10
+        self._scroll_gap_px = 8
 
         try:
             from rgbmatrix import RGBMatrix, RGBMatrixOptions  # type: ignore
@@ -177,17 +203,20 @@ class MatrixDisplay:
 
         self._draw_icon(draw, connector_type, accent)
 
-        title = self._truncate_text(item.title.strip(), 10)
-        draw.text((10, 0), title, font=self._font, fill=accent)
+        title = self._normalize_text(item.title.strip())
+        title = self._truncate_text(title, 11)
+        self._draw_pixel_text(draw, title, x=8, y=1, scale=1, color=accent)
 
         body = item.body.strip().replace("\n", " ")
+        body = self._normalize_text(body)
         body_x = 1
-        body_y = 11
+        body_y = 8
         max_body_width = self.config.width - 2
         self._draw_scrolling_text(draw, body, body_x, body_y, max_body_width)
 
-        footer = self._truncate_text(f"{item.updated_at.strftime('%H:%M')} {item.connector_name}", 13)
-        draw.text((1, 22), footer, font=self._font, fill=(170, 170, 170))
+        footer = self._normalize_text(f"{item.updated_at.strftime('%H:%M')} {item.connector_name}")
+        footer = self._truncate_text(footer, 14)
+        self._draw_pixel_text(draw, footer, x=1, y=26, scale=1, color=(150, 150, 150))
 
         self._matrix.SetImage(image, 0, 0)
 
@@ -197,8 +226,11 @@ class MatrixDisplay:
         connector_type: str,
         color: tuple[int, int, int],
     ) -> None:
-        for px, py in CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"]):
-            draw.point((px, py), fill=color)
+        icon = CONNECTOR_ICONS.get(connector_type, CONNECTOR_ICONS["generic"])
+        for y, row in enumerate(icon):
+            for x, bit in enumerate(row):
+                if bit == "1":
+                    draw.point((x + 1, y + 1), fill=color)
 
     def _draw_scrolling_text(
         self,
@@ -210,7 +242,7 @@ class MatrixDisplay:
     ) -> None:
         text_width = self._text_width(draw, text)
         if text_width <= max_width:
-            draw.text((x, y), text, font=self._font, fill=(255, 210, 120))
+            self._draw_pixel_text(draw, text, x=x, y=y, scale=2, color=(255, 210, 120))
             self._reset_scroll()
             return
 
@@ -232,12 +264,20 @@ class MatrixDisplay:
                 self._scroll_pause_until = now + self._scroll_pause_seconds
 
         offset_x = x - self._scroll_offset
-        draw.text((offset_x, y), text, font=self._font, fill=(255, 210, 120))
-        draw.text((offset_x + text_width + self._scroll_gap_px, y), text, font=self._font, fill=(255, 210, 120))
+        self._draw_pixel_text(draw, text, x=offset_x, y=y, scale=2, color=(255, 210, 120))
+        self._draw_pixel_text(
+            draw,
+            text,
+            x=offset_x + text_width + self._scroll_gap_px,
+            y=y,
+            scale=2,
+            color=(255, 210, 120),
+        )
 
     def _text_width(self, draw: ImageDraw.ImageDraw, text: str) -> int:
-        left, _, right, _ = draw.textbbox((0, 0), text, font=self._font)
-        return right - left
+        del draw
+        normalized = self._normalize_text(text)
+        return len(normalized) * ((3 * 2) + 1)
 
     def _truncate_text(self, text: str, max_chars: int) -> str:
         if len(text) <= max_chars:
@@ -251,6 +291,35 @@ class MatrixDisplay:
         self._scroll_offset = 0
         self._scroll_last_tick = 0.0
         self._scroll_pause_until = 0.0
+
+    def _normalize_text(self, text: str) -> str:
+        normalized = unicodedata.normalize("NFKD", text)
+        ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+        return ascii_only.upper()
+
+    def _draw_pixel_text(
+        self,
+        draw: ImageDraw.ImageDraw,
+        text: str,
+        x: int,
+        y: int,
+        scale: int,
+        color: tuple[int, int, int],
+    ) -> None:
+        cursor_x = x
+        for char in text:
+            glyph = PIXEL_FONT_3X5.get(char, PIXEL_FONT_3X5["?"])
+            for gy, row in enumerate(glyph):
+                for gx, bit in enumerate(row):
+                    if bit != "1":
+                        continue
+                    px = cursor_x + gx * scale
+                    py = y + gy * scale
+                    draw.rectangle(
+                        (px, py, px + scale - 1, py + scale - 1),
+                        fill=color,
+                    )
+            cursor_x += (3 * scale) + 1
 
     def _show_console(self, lines: list[str]) -> None:
         print("\n" + "=" * 30)
