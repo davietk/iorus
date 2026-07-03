@@ -140,6 +140,7 @@ MDI_ICON_ALIASES: dict[str, tuple[str, ...]] = {
 PIXEL_FONT_3X5: dict[str, tuple[str, ...]] = {
     " ": ("000", "000", "000", "000", "000"),
     ".": ("000", "000", "000", "000", "010"),
+    "°": ("010", "101", "010", "000", "000"),
     "'": ("010", "010", "000", "000", "000"),
     ",": ("000", "000", "000", "010", "100"),
     ":": ("000", "010", "000", "010", "000"),
@@ -447,15 +448,17 @@ class MatrixDisplay:
         for source, target in replacements.items():
             text = text.replace(source, target)
 
-        normalized = unicodedata.normalize("NFKD", text)
-        ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
-        upper = ascii_only.upper()
-
         filtered_chars: list[str] = []
-        for char in upper:
-            if char in PIXEL_FONT_3X5:
-                filtered_chars.append(char)
-            elif char.isalnum():
+        normalized = unicodedata.normalize("NFKD", text)
+        for char in normalized:
+            # Ignore diacritic marks after NFKD decomposition.
+            if unicodedata.category(char) == "Mn":
+                continue
+
+            upper_char = char.upper()
+            if upper_char in PIXEL_FONT_3X5:
+                filtered_chars.append(upper_char)
+            elif upper_char.isalnum():
                 filtered_chars.append("?")
             else:
                 filtered_chars.append(" ")
